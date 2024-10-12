@@ -1,5 +1,6 @@
 
 using ApiWithAuth.Data;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -56,6 +57,23 @@ namespace ApiWithAuth
             {
                 o.AddPolicy("AdminPolicy", p => p.RequireRole("Admin"));
                 o.AddPolicy("UserPolicy", p => p.RequireRole("User"));
+            });
+
+            // Versioning
+            builder.Services.AddApiVersioning(o =>
+            {
+                o.AssumeDefaultVersionWhenUnspecified = true;
+                o.DefaultApiVersion = Asp.Versioning.ApiVersion.Default; // new Asp.Versioning.ApiVersion(1,0); //v1.0
+                o.ReportApiVersions = true;
+                o.ApiVersionReader = ApiVersionReader.Combine(
+                    new QueryStringApiVersionReader("api-version"), // ?api-version=1
+                    new HeaderApiVersionReader("api-version"),      // header - api-version:1
+                    new UrlSegmentApiVersionReader()                // /api/v1/
+                    );
+            }).AddApiExplorer(o =>
+            {
+                o.GroupNameFormat = "'v'V";
+                o.SubstituteApiVersionInUrl = true;
             });
 
             var app = builder.Build();

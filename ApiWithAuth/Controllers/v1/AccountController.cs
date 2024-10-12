@@ -1,4 +1,5 @@
 ﻿using ApiWithAuth.Dtos;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -6,9 +7,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace ApiWithAuth.Controllers
+namespace AuthWithRoles.Controllers.v1
 {
-    [Route("api/[controller]")]
+    [ApiVersion(1)]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
     public class AccountController : ControllerBase
     {
@@ -51,7 +53,7 @@ namespace ApiWithAuth.Controllers
                     issuer: _configuration["Jwt:Issuer"],
                     expires: DateTime.Now.AddMinutes(double.Parse(_configuration["Jwt:Key"]!)),
                     claims: authClaims,
-                    signingCredentials: new Microsoft.IdentityModel.Tokens.SigningCredentials(
+                    signingCredentials: new SigningCredentials(
                         new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!)), SecurityAlgorithms.HmacSha256)
                     );
 

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Reflection;
 using System.Text;
 
 namespace ApiWithAuth
@@ -20,7 +21,13 @@ namespace ApiWithAuth
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+
+            // Documentation
+            builder.Services.AddSwaggerGen(o =>
+            {
+                var file = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                o.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, file));
+            });
 
             builder.Services.AddDbContext<AppDbContext>(o=>o.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer")));
 

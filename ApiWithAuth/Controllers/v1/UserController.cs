@@ -11,6 +11,10 @@ namespace AuthWithRoles.Controllers.v1
     [ApiController]
     public class UserController : ControllerBase
     {
+        /// <summary>
+        /// Open method for all users
+        /// </summary>
+        /// <response code="201">Sample response</response>
         [HttpGet]
         public IActionResult Get()
         {

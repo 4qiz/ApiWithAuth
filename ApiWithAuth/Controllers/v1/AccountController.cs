@@ -25,7 +25,15 @@ namespace AuthWithRoles.Controllers.v1
             _configuration = configuration;
         }
 
+        /// <summary>
+        /// Method for register user
+        /// </summary>
+        /// <param name="registerDto">Data of user</param>
+        /// <response code="201">New users registred</response>
+        /// <response code="400">Bad Request</response>
         [HttpPost("register")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Register(RegisterDto registerDto)
         {
             var user = new IdentityUser { UserName = registerDto.Username, Email = registerDto.Email };

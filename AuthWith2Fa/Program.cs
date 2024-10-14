@@ -1,8 +1,12 @@
 
 using AuthWith2Fa.Data;
 using AuthWith2Fa.Entities;
+using AuthWith2Fa.JwtFeatures;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace AuthWith2Fa
 {
@@ -39,6 +43,29 @@ namespace AuthWith2Fa
             })
                 .AddEntityFrameworkStores<AppDbContext>();
 
+            //JWT
+            var jwtSettings = builder.Configuration.GetSection("Jwt");
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidAudience = jwtSettings["validAudience"],
+                    ValidIssuer = jwtSettings["validIssuer"],
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(jwtSettings.GetSection("Key").Value))
+                };
+            });
+
+            builder.Services.AddSingleton<JwtHandler>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -48,8 +75,8 @@ namespace AuthWith2Fa
                 app.UseSwaggerUI();
             }
 
+            app.UseAuthentication();
             app.UseAuthorization();
-
 
             app.MapControllers();
 

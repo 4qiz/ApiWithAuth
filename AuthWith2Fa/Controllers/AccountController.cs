@@ -3,8 +3,10 @@ using AuthWith2Fa.Dtos.Response;
 using AuthWith2Fa.Entities;
 using AuthWith2Fa.JwtFeatures;
 using AutoMapper;
+using EmailService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace AuthWith2Fa.Controllers
 {
@@ -15,12 +17,14 @@ namespace AuthWith2Fa.Controllers
         private readonly UserManager<User> _userManager;
         private readonly IMapper _mapper;
         private readonly JwtHandler _jwt;
+        private readonly IEmailSender _emailSender;
 
-        public AccountController(UserManager<User> userManager, IMapper mapper, JwtHandler jwt)
+        public AccountController(UserManager<User> userManager, IMapper mapper, JwtHandler jwt, IEmailSender emailSender)
         {
             _userManager = userManager;
             _mapper = mapper;
-            this._jwt = jwt;
+            _jwt = jwt;
+            _emailSender = emailSender;
         }
 
         [HttpPost("register")]
@@ -41,7 +45,7 @@ namespace AuthWith2Fa.Controllers
                 return BadRequest(new RegistrationResponseDto { Errors = errors });
             }
 
-            await _userManager.AddToRoleAsync(user, "Visitor");
+            await _userManager.AddToRoleAsync(user, "visitor");
 
             return StatusCode(201);
         }
@@ -59,6 +63,61 @@ namespace AuthWith2Fa.Controllers
 
             var token = _jwt.CreateToken(user, roles);
             return Ok(new AuthResponseDto { Token = token, IsSuccessful = true });
+        }
+
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null)
+            {
+                return BadRequest();
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            var param = new Dictionary<string, string>
+            {
+                {"token", token},
+                {"email", dto.Email}
+            };
+
+            var callback = QueryHelpers.AddQueryString(dto.ClientUri, param);
+
+            var message = new EmailMessage([user.Email], "reset Password", $"{callback} \n {token}");
+            Console.WriteLine("\n"+token+"\n");
+            //await _emailSender.SendEmail(message);
+            return Ok();
+        }
+
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null)
+            {
+                return BadRequest();
+            }
+
+            var result = await _userManager.ResetPasswordAsync(user,dto.Token, dto.Password);
+
+            if (!result.Succeeded)
+            {
+                var errors = result.Errors.Select(e=>e.Description);
+                return BadRequest(errors);
+            }
+
+            return Ok();
         }
     }
 }

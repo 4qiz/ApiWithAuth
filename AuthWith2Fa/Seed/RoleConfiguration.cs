@@ -14,12 +14,14 @@ namespace AuthWith2Fa.Seed
                 {
                     Id = "7ad58efe-6c35-4d4a-acd8-60f6c1b75bcb",
                     Name = "Visitor",
+                    NormalizedName = "VISITOR",
                     Description = "visitor role"
                 },
                  new Role
                  {
                      Id = "7ad58e2e-6c35-4d4a-acd8-60f6c1b7vbcb",
                      Name = "Admin",
+                     NormalizedName = "ADMIN",
                      Description = "visitor role"
                  });
         }

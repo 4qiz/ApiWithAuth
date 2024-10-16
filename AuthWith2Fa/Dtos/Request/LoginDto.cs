@@ -5,6 +5,7 @@ namespace AuthWith2Fa.Dtos.Request
     public class LoginDto
     {
         [Required]
+        [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
         [Required]

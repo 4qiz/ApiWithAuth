@@ -12,18 +12,18 @@ namespace EmailService
             this.configuration = configuration;
         }
 
-        public void SendEmail(EmailMessage emailMessage)
+        public async Task SendEmail(EmailMessage emailMessage)
         {
             var message = CreateEmailMessage(emailMessage);
-            Send(message);
+            await Send(message);
         }
 
-        private async void Send(MimeMessage message)
+        private async Task Send(MimeMessage message)
         {
             using var client = new SmtpClient();
             try
             {
-                await client.ConnectAsync(configuration.SmtpServer, configuration.Port, true);
+                await client.ConnectAsync(configuration.SmtpServer, configuration.Port, false);
 
                 if (!string.IsNullOrEmpty(configuration.UserName) && !string.IsNullOrEmpty(configuration.Password))
                 {

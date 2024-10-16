@@ -42,13 +42,16 @@ namespace AuthWith2Fa
             // Identity
             builder.Services.AddIdentity<User, Role>(options =>
             {
-                // options.Password.RequiredLength = 5;
+                 options.Password.RequiredLength = 5;
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireUppercase = false;
                 options.Password.RequireLowercase = false;
                 options.Password.RequireDigit = false;
             })
-                .AddEntityFrameworkStores<AppDbContext>();
+                .AddEntityFrameworkStores<AppDbContext>()
+                .AddDefaultTokenProviders();
+
+            builder.Services.Configure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromMinutes(60));
 
             //JWT
             var jwtSettings = builder.Configuration.GetSection("Jwt");

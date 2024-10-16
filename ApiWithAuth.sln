@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthWithRoles", "ApiWithAut
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleJwtAuth", "SimpleJwtAuth\SimpleJwtAuth.csproj", "{3DAD2A28-C27F-412E-8D8F-F68D8817D8D5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthWith2Fa", "AuthWith2Fa\AuthWith2Fa.csproj", "{5FE64049-1D2D-47C5-89F6-8FDCCD4297BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthWith2Fa", "AuthWith2Fa\AuthWith2Fa.csproj", "{5FE64049-1D2D-47C5-89F6-8FDCCD4297BE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmailService", "EmailService\EmailService.csproj", "{F196EB80-121B-4CDB-9A1D-5B5612EAEFF2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{5FE64049-1D2D-47C5-89F6-8FDCCD4297BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5FE64049-1D2D-47C5-89F6-8FDCCD4297BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5FE64049-1D2D-47C5-89F6-8FDCCD4297BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F196EB80-121B-4CDB-9A1D-5B5612EAEFF2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F196EB80-121B-4CDB-9A1D-5B5612EAEFF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F196EB80-121B-4CDB-9A1D-5B5612EAEFF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F196EB80-121B-4CDB-9A1D-5B5612EAEFF2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

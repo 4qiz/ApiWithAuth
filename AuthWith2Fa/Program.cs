@@ -2,6 +2,7 @@
 using AuthWith2Fa.Data;
 using AuthWith2Fa.Entities;
 using AuthWith2Fa.JwtFeatures;
+using EmailService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +29,12 @@ namespace AuthWith2Fa
             {
                 options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer"));
             });
+
+            // Email Service
+            var emailConfiguration = builder.Configuration.GetSection("EmailConfiguration").Get<EmailConfiguration>();
+            builder.Services.AddSingleton(emailConfiguration);
+
+            builder.Services.AddScoped<IEmailSender, EmailSender>();
 
             // auto mapper
             builder.Services.AddAutoMapper(typeof(Program));

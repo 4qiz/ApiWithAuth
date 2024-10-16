@@ -40,6 +40,9 @@ namespace AuthWith2Fa.Controllers
                 var errors = result.Errors.Select(e => e.Description);
                 return BadRequest(new RegistrationResponseDto { Errors = errors });
             }
+
+            await _userManager.AddToRoleAsync(user, "Visitor");
+
             return StatusCode(201);
         }
 
@@ -52,7 +55,9 @@ namespace AuthWith2Fa.Controllers
                 return Unauthorized(new AuthResponseDto { ErrorMessage = "Invalid" });
             }
 
-            var token = _jwt.CreateToken(user);
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var token = _jwt.CreateToken(user, roles);
             return Ok(new AuthResponseDto { Token = token, IsSuccessful = true });
         }
     }

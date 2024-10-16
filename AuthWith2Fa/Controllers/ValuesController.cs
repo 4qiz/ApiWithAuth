@@ -8,7 +8,7 @@ namespace AuthWith2Fa.Controllers
     [ApiController]
     public class ValuesController : ControllerBase
     {
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public IActionResult Get()
         {

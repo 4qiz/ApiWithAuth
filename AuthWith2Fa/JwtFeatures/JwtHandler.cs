@@ -17,10 +17,10 @@ namespace AuthWith2Fa.JwtFeatures
             _jwtSettings = _configuration.GetSection("Jwt");
         }
 
-        public string CreateToken(User user)
+        public string CreateToken(User user, IList<string> roles)
         {
             var signinCredentials = GetSigningCredentials();
-            var claims = GetClaims(user);
+            var claims = GetClaims(user, roles);
             var tokenOptions = GetJwtSecurityToken(signinCredentials, claims);
             return new JwtSecurityTokenHandler().WriteToken(tokenOptions);
         }
@@ -33,7 +33,20 @@ namespace AuthWith2Fa.JwtFeatures
             return new SigningCredentials(secret, SecurityAlgorithms.HmacSha256);
         }
 
-        private List<Claim> GetClaims(User user) => [new(ClaimTypes.Name, user.UserName)];
+        private List<Claim> GetClaims(User user, IList<string> roles)
+        {
+            var claims = new List<Claim>() 
+            {
+                new(ClaimTypes.Name, user.UserName)
+            };
+
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            return claims;
+        }
 
         private JwtSecurityToken GetJwtSecurityToken(SigningCredentials signingCredentials, List<Claim> claims)
             => new(issuer: _jwtSettings["validIssuer"],

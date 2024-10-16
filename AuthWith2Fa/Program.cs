@@ -29,11 +29,11 @@ namespace AuthWith2Fa
                 options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer"));
             });
 
-            //auto mapper
+            // auto mapper
             builder.Services.AddAutoMapper(typeof(Program));
 
             // Identity
-            builder.Services.AddIdentity<User, IdentityRole>(options =>
+            builder.Services.AddIdentity<User, Role>(options =>
             {
                 // options.Password.RequiredLength = 5;
                 options.Password.RequireNonAlphanumeric = false;

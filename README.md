@@ -19,3 +19,5 @@ Swashbuckle.AspNetCore
 Asp.Versioning.Mvc
 
 Asp.Versioning.Mvc.ApiExplorer
+
+MailKit

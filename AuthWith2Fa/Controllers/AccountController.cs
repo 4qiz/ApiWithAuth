@@ -61,9 +61,6 @@ namespace AuthWith2Fa.Controllers
 
             await _userManager.AddToRoleAsync(user, "visitor");
 
-            // 2fa
-            await _userManager.SetTwoFactorEnabledAsync(user, true);
-
             return StatusCode(201);
         }
 
@@ -80,7 +77,7 @@ namespace AuthWith2Fa.Controllers
                 return Unauthorized(new AuthResponseDto { ErrorMessage = "Email is not confirmed" });
             }
 
-            if (!await _userManager.IsLockedOutAsync(user))
+            if (await _userManager.IsLockedOutAsync(user))
             {
                 return Unauthorized(new AuthResponseDto { ErrorMessage = "Lock" });
             }
@@ -100,7 +97,7 @@ namespace AuthWith2Fa.Controllers
                 return Unauthorized(new AuthResponseDto { ErrorMessage = "Invalid" });
             }
 
-            if(await _userManager.GetTwoFactorEnabledAsync(user))
+            if (await _userManager.GetTwoFactorEnabledAsync(user))
             {
                 return await GenerateOtpForTwoFactor(user);
             }
@@ -125,10 +122,33 @@ namespace AuthWith2Fa.Controllers
             var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
 
             var message = new EmailMessage([user.Email], "2FA token", token);
-            Console.WriteLine("\n"+token+"\n");
+            Console.WriteLine("\n" + token + "\n");
             //await _emailSender.SendEmail(message);
 
-            return Ok(new AuthResponseDto {Is2FaRequired = true, Provider = "Email"});
+            return Ok(new AuthResponseDto { Is2FaRequired = true, Provider = "Email" });
+        }
+
+        [HttpPost("enable2fa")]
+        public async Task<IActionResult> Enable2Fa(LoginDto loginDto)
+        {
+            var user = await _userManager.FindByNameAsync(loginDto.Email);
+            if (user == null)
+            {
+                return BadRequest();
+            }
+            if (!await _userManager.IsEmailConfirmedAsync(user))
+            {
+                return Unauthorized(new AuthResponseDto { ErrorMessage = "Email is not confirmed" });
+            }
+
+            if (!await _userManager.CheckPasswordAsync(user, loginDto.Password))
+            {
+                return Unauthorized(new AuthResponseDto { ErrorMessage = "Invalid" });
+            }
+
+            await _userManager.SetTwoFactorEnabledAsync(user, true);
+
+            return Ok();
         }
 
         [HttpPost("forgot-password")]

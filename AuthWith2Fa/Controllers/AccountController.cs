@@ -61,6 +61,9 @@ namespace AuthWith2Fa.Controllers
 
             await _userManager.AddToRoleAsync(user, "visitor");
 
+            // 2fa
+            await _userManager.SetTwoFactorEnabledAsync(user, true);
+
             return StatusCode(201);
         }
 
@@ -97,6 +100,11 @@ namespace AuthWith2Fa.Controllers
                 return Unauthorized(new AuthResponseDto { ErrorMessage = "Invalid" });
             }
 
+            if(await _userManager.GetTwoFactorEnabledAsync(user))
+            {
+                return await GenerateOtpForTwoFactor(user);
+            }
+
             var roles = await _userManager.GetRolesAsync(user);
 
             var token = _jwt.CreateToken(user, roles);
@@ -104,6 +112,23 @@ namespace AuthWith2Fa.Controllers
             await _userManager.ResetAccessFailedCountAsync(user);
 
             return Ok(new AuthResponseDto { Token = token, IsSuccessful = true });
+        }
+
+        private async Task<IActionResult> GenerateOtpForTwoFactor(User user)
+        {
+            var providers = await _userManager.GetValidTwoFactorProvidersAsync(user);
+            if (!providers.Contains("Email"))
+            {
+                return Unauthorized(new AuthResponseDto { ErrorMessage = "Invalid 2fa" });
+            }
+
+            var token = await _userManager.GenerateTwoFactorTokenAsync(user, "Email");
+
+            var message = new EmailMessage([user.Email], "2FA token", token);
+            Console.WriteLine("\n"+token+"\n");
+            //await _emailSender.SendEmail(message);
+
+            return Ok(new AuthResponseDto {Is2FaRequired = true, Provider = "Email"});
         }
 
         [HttpPost("forgot-password")]
@@ -179,6 +204,26 @@ namespace AuthWith2Fa.Controllers
                 return BadRequest();
             }
             return Ok();
+        }
+
+        [HttpPost("two-factor")]
+        public async Task<IActionResult> TwoFactor(TwoFactorDto dto)
+        {
+            if (!ModelState.IsValid) { return BadRequest(); }
+            var user = await _userManager.FindByEmailAsync(dto.Email);
+            if (user == null)
+            {
+                return BadRequest();
+            }
+            var validVerification = await _userManager.VerifyTwoFactorTokenAsync(user, dto.Provider, dto.Token);
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var token = _jwt.CreateToken(user, roles);
+
+            await _userManager.ResetAccessFailedCountAsync(user);
+
+            return Ok(new AuthResponseDto { Token = token, IsSuccessful = true });
         }
     }
 }

@@ -2,6 +2,7 @@
 using AuthWith2Fa.Data;
 using AuthWith2Fa.Entities;
 using AuthWith2Fa.JwtFeatures;
+using AuthWith2Fa.Validation;
 using EmailService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -47,9 +48,15 @@ namespace AuthWith2Fa
                 options.Password.RequireUppercase = false;
                 options.Password.RequireLowercase = false;
                 options.Password.RequireDigit = false;
+
+                //Lockout (after 5 tries account will be lock for login for 10 minutes)
+                options.Lockout.AllowedForNewUsers = true;
+                options.Lockout.MaxFailedAccessAttempts= 5;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(10);
             })
                 .AddEntityFrameworkStores<AppDbContext>()
-                .AddDefaultTokenProviders();
+                .AddDefaultTokenProviders()
+                .AddPasswordValidator<CustomPasswordValidator<User>>();
 
             builder.Services.Configure<DataProtectionTokenProviderOptions>(options => options.TokenLifespan = TimeSpan.FromMinutes(60));
 

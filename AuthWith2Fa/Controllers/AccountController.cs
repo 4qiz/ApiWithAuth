@@ -76,14 +76,33 @@ namespace AuthWith2Fa.Controllers
             {
                 return Unauthorized(new AuthResponseDto { ErrorMessage = "Email is not confirmed" });
             }
+
+            if (!await _userManager.IsLockedOutAsync(user))
+            {
+                return Unauthorized(new AuthResponseDto { ErrorMessage = "Lock" });
+            }
+
             if (!await _userManager.CheckPasswordAsync(user, loginDto.Password))
             {
+                //lock out
+                await _userManager.AccessFailedAsync(user);
+                if (await _userManager.IsLockedOutAsync(user))
+                {
+                    var content = "Your account is locked out";
+                    var message = new EmailMessage([user.Email], "account locked out", content);
+                    Console.WriteLine(content);
+                    //await _emailSender.SendEmail(message);
+                    return Unauthorized(new AuthResponseDto { ErrorMessage = "Lock" });
+                }
                 return Unauthorized(new AuthResponseDto { ErrorMessage = "Invalid" });
             }
 
             var roles = await _userManager.GetRolesAsync(user);
 
             var token = _jwt.CreateToken(user, roles);
+
+            await _userManager.ResetAccessFailedCountAsync(user);
+
             return Ok(new AuthResponseDto { Token = token, IsSuccessful = true });
         }
 
@@ -138,6 +157,8 @@ namespace AuthWith2Fa.Controllers
                 var errors = result.Errors.Select(e => e.Description);
                 return BadRequest(errors);
             }
+
+            await _userManager.SetLockoutEndDateAsync(user, null);
 
             return Ok();
         }

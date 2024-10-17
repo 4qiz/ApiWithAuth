@@ -11,6 +11,7 @@ namespace AuthWith2Fa.Dtos.Request
         public string LastName { get; set; } = string.Empty;
 
         [Required]
+        [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
         [Required]
@@ -18,5 +19,8 @@ namespace AuthWith2Fa.Dtos.Request
 
         [Compare("Password")]
         public string ConfirmPassword { get; set; } = string.Empty;
+
+        [Required]
+        public string ClientUri { get; set; } = string.Empty;
     }
 }

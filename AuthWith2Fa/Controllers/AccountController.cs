@@ -45,6 +45,20 @@ namespace AuthWith2Fa.Controllers
                 return BadRequest(new RegistrationResponseDto { Errors = errors });
             }
 
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+            var param = new Dictionary<string, string>
+            {
+                {"token", token},
+                {"email", registrationDto.Email}
+            };
+
+            var callback = QueryHelpers.AddQueryString(registrationDto.ClientUri, param);
+
+            var message = new EmailMessage([user.Email], "email confirmation", $"{callback} \n {token}");
+            Console.WriteLine("\n" + token + "\n");
+            //await _emailSender.SendEmail(message);
+
             await _userManager.AddToRoleAsync(user, "visitor");
 
             return StatusCode(201);
@@ -54,7 +68,15 @@ namespace AuthWith2Fa.Controllers
         public async Task<IActionResult> Login(LoginDto loginDto)
         {
             var user = await _userManager.FindByNameAsync(loginDto.Email);
-            if (user == null || !await _userManager.CheckPasswordAsync(user, loginDto.Password))
+            if (user == null)
+            {
+                return BadRequest();
+            }
+            if (!await _userManager.IsEmailConfirmedAsync(user))
+            {
+                return Unauthorized(new AuthResponseDto { ErrorMessage = "Email is not confirmed" });
+            }
+            if (!await _userManager.CheckPasswordAsync(user, loginDto.Password))
             {
                 return Unauthorized(new AuthResponseDto { ErrorMessage = "Invalid" });
             }
@@ -90,7 +112,7 @@ namespace AuthWith2Fa.Controllers
             var callback = QueryHelpers.AddQueryString(dto.ClientUri, param);
 
             var message = new EmailMessage([user.Email], "reset Password", $"{callback} \n {token}");
-            Console.WriteLine("\n"+token+"\n");
+            Console.WriteLine("\n" + token + "\n");
             //await _emailSender.SendEmail(message);
             return Ok();
         }
@@ -109,14 +131,32 @@ namespace AuthWith2Fa.Controllers
                 return BadRequest();
             }
 
-            var result = await _userManager.ResetPasswordAsync(user,dto.Token, dto.Password);
+            var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.Password);
 
             if (!result.Succeeded)
             {
-                var errors = result.Errors.Select(e=>e.Description);
+                var errors = result.Errors.Select(e => e.Description);
                 return BadRequest(errors);
             }
 
+            return Ok();
+        }
+
+        [HttpPost("confirm-email")]
+        public async Task<IActionResult> ConfirmEmail(string email, string token)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return BadRequest();
+            }
+
+            var confirmResult = await _userManager.ConfirmEmailAsync(user, token);
+
+            if (!confirmResult.Succeeded)
+            {
+                return BadRequest();
+            }
             return Ok();
         }
     }
